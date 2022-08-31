@@ -58,7 +58,9 @@ public class AccountServices {
 
 		// Pass yes and no contact with the quantity to the correct strategy depending on contact quantity 
 		//
-
+		
+        // A factory could be implemented to dynamically get strategies
+        
         if(totalContactQuantity < 200){
             System.debug('Synchronous Strategy');
             // Process normally
