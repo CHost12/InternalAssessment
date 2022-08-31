@@ -11,7 +11,10 @@ public class Test_AccountTriggerHandler {
     
 		insert accountList;
                 
-        List<Contact> contactList = new List<Contact>();  
+        List<Contact> contactList = new List<Contact>();
+        for(Integer i= 0; i < 1000; i++){
+            contactList.add(new Contact(Firstname= 'Test1' + i, LastName= 'Test1'+i, accountId= accountList[0].id));
+        }
 		contactList.add(new Contact(Firstname= 'Test1', LastName= 'Test1', accountId= accountList[0].id));
         contactList.add(new Contact(Firstname= 'Test2', LastName= 'Test2', accountId= accountList[0].id));
         contactList.add(new Contact(Firstname= 'Test3', LastName= 'Test3', accountId= accountList[1].id));

@@ -1,4 +1,4 @@
 public interface ProcessingStrategy
 {	    
-    void process(List<Contact> contacts);
+    void process();
 }

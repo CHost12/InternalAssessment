@@ -11,26 +11,20 @@ public class AccountServices {
         if(AccountsToProcessTheirContacts.get('Yes')?.size() > 0){
             yesAccountsIds = new Set<Id>();
             yesAccountsIds.addall(AccountsToProcessTheirContacts.get('Yes'));
-            System.debug('Yes added');
-            System.debug(yesAccountsIds);
         }
         
         // No
         if(AccountsToProcessTheirContacts.get('No')?.size() > 0){
             noAccountsIds = new Set<Id>();
             noAccountsIds.addall(AccountsToProcessTheirContacts.get('No'));
-            System.debug('No added');
-            System.debug(noAccountsIds);
         }
         
         if(yesAccountsIds?.size() > 0){
             yesContacts = new List<Contact>();
             
-            for (Contact contactYes : [SELECT ID, NAME, Account.id FROM Contact WHERE Account.id IN :yesAccountsIds]){
+            for (Contact contactYes : [SELECT ID FROM Contact WHERE Account.id IN :yesAccountsIds]){
                 contactYes.Push_Date__c = Date.today();
                 yesContacts.add(contactYes);
-                System.debug('Yes??');
-                System.debug(contactYes);
             }
             totalContactQuantity += yesContacts.size();
         }
@@ -38,11 +32,9 @@ public class AccountServices {
         if(noAccountsIds?.size() > 0){
             noContacts= new List<Contact>();
             
-            for (Contact contactNo : [SELECT ID, NAME, Account.id FROM Contact WHERE Account.id IN :noAccountsIds]) {
+            for (Contact contactNo : [SELECT ID FROM Contact WHERE Account.id IN :noAccountsIds]) {
                 contactNo.Push_Date__c = null;
                 noContacts.add(contactNo);
-                System.debug('No??');
-                System.debug(contactNo);
             }
             totalContactQuantity += noContacts.size();
             
@@ -63,18 +55,38 @@ public class AccountServices {
         
         if(totalContactQuantity < 200){
             System.debug('Synchronous Strategy');
-            // Process normally
+            Map<String, List<Contact>> contactMap = new Map<String, List<Contact>>();
+            contactMap.put('Yes', yesContacts);
+            contactMap.put('No', noContacts);
+                
+            ProcessSynchronousStrategy strategy = new ProcessSynchronousStrategy(contactMap);
+            // Process Synchronous
+            // pass a Map with this structure
+            // {
+            // 'Yes' : List<Contacts>,
+            // 'No' : List<Contacts>
+            // }
+            
         }
         
-        if(totalContactQuantity >= 200 && totalContactQuantity <= 1000){
+        if(totalContactQuantity >= 200 && totalContactQuantity < 1000){
             System.debug('One time process Strategy');
-            // Process in a async one time process
+            // Process in a asynchronous in a one time process
+            // pass a Map with this structure
+            // {
+            // 'Yes' : List<Contacts>,
+            // 'No' : List<Contacts>
+            // }
         }	
         
-        if(totalContactQuantity > 1000){
+        if(totalContactQuantity >= 1000){
              System.debug('Batcheable Strategy');
             // Process in batchs of 150 records
-           
+            // pass a Map with this structure
+            // {
+            // 'Yes' : List<Contacts>,
+            // 'No' : List<Contacts>
+            // }
             
         }	
         
