@@ -7,6 +7,9 @@ public class AccountServices {
         List<Contact> yesContacts;
         List<Contact> noContacts;
         
+        Set<Id> yesContactIds;
+        Set<Id> noContactIds;
+        
         // Yes
         if(AccountsToProcessTheirContacts.get('Yes')?.size() > 0){
             yesAccountsIds = new Set<Id>();
@@ -21,45 +24,45 @@ public class AccountServices {
         
         if(yesAccountsIds?.size() > 0){
             yesContacts = new List<Contact>();
+            yesContactIds= new Set<Id>();
             
             for (Contact contactYes : [SELECT ID FROM Contact WHERE Account.id IN :yesAccountsIds]){
-                contactYes.Push_Date__c = Date.today();
                 yesContacts.add(contactYes);
+                yesContactIds.add(contactYes.id);
             }
             totalContactQuantity += yesContacts.size();
         }
         
         if(noAccountsIds?.size() > 0){
             noContacts= new List<Contact>();
+            noContactIds= new Set<Id>();
             
             for (Contact contactNo : [SELECT ID FROM Contact WHERE Account.id IN :noAccountsIds]) {
-                contactNo.Push_Date__c = null;
                 noContacts.add(contactNo);
+ 				noContactIds.add(contactNo.id);                
             }
             totalContactQuantity += noContacts.size();
             
         }
-        System.debug('Total contacts');
-        System.debug(totalContactQuantity);
-        System.debug('Contacts to be passed to the strategy');
+        
         List<Contact> contactsToSeeAllTogether = New List<Contact>();
 		contactsToSeeAllTogether.addAll(yesContacts);
         contactsToSeeAllTogether.addAll(noContacts);
-        System.debug('Size when all merged into a list');
-        System.debug(contactsToSeeAllTogether.size());
-
+        
 		// Pass yes and no contact with the quantity to the correct strategy depending on contact quantity 
 		//
 		
         // A factory could be implemented to dynamically get strategies
-        
+        // TODO : Only pass a list of contacts Ids
+        // 
         if(totalContactQuantity < 200){
             System.debug('Synchronous Strategy');
             Map<String, List<Contact>> contactMap = new Map<String, List<Contact>>();
             contactMap.put('Yes', yesContacts);
             contactMap.put('No', noContacts);
                 
-            ProcessSynchronousStrategy strategy = new ProcessSynchronousStrategy(contactMap);
+            ProcessingStrategy strategy = new ProcessSynchronousStrategy(contactMap);
+            strategy.process();
             // Process Synchronous
             // pass a Map with this structure
             // {
@@ -71,6 +74,11 @@ public class AccountServices {
         
         if(totalContactQuantity >= 200 && totalContactQuantity < 1000){
             System.debug('One time process Strategy');
+            Map<String, List<Contact>> contactMap = new Map<String, List<Contact>>();
+            contactMap.put('Yes', yesContacts);
+            contactMap.put('No', noContacts);
+                
+            ProcessingStrategy strategy = new OneTimeProcessStrategy(contactMap);
             // Process in a asynchronous in a one time process
             // pass a Map with this structure
             // {
@@ -80,7 +88,12 @@ public class AccountServices {
         }	
         
         if(totalContactQuantity >= 1000){
-             System.debug('Batcheable Strategy');
+            System.debug('Batcheable Strategy');
+            Map<String, Set<Id>> contactMap = new Map<String, Set<Id>>();
+            contactMap.put('Yes', yesContactIds);
+            contactMap.put('No', noContactIds);
+            
+            ProcessingStrategy strategy = new ProcessInBatchStrategy(contactMap);
             // Process in batchs of 150 records
             // pass a Map with this structure
             // {

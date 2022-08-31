@@ -16,7 +16,7 @@ public class AccountTriggerHandler extends TriggerHandler {
     for (Account account: newAccountList) {
 			if(account.PushToVendor__c != null) {
             	System.debug(account.PushToVendor__c);
-				System.debug('DEBUG PushToVendor__c');
+				      System.debug('DEBUG PushToVendor__c');
                 
                 if(account.PushToVendor__c == 'Yes'){
                     if(yesAndNoAccounts.get('Yes')?.size() > 0){
